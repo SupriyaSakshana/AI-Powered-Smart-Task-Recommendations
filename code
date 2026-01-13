@@ -1,0 +1,188 @@
+import os
+import pickle
+import warnings
+warnings.filterwarnings("ignore")
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from scipy.sparse import hstack
+
+
+# ================================================================
+#  Force pandas to load file locally (no fsspec)
+# ================================================================
+def safe_read_csv(path):
+    with open(path, "rb") as f:
+        return pd.read_csv(f)
+
+
+# ================================================================
+#  Utility: Check if saved model exists
+# ================================================================
+
+
+def model_exists(model_dir):
+    required_files = [
+        "model.pkl",
+        "tfidf.pkl",
+        "le_target.pkl",
+        "le_mood.pkl",
+        "le_priority.pkl"
+    ]
+    return all(os.path.exists(os.path.join(model_dir, f))
+               for f in required_files)
+
+# ================================================================
+# Save model + encoders offline
+# ================================================================
+def save_model_components(model_dir, model, tfidf, le_target, le_mood, le_priority):
+    os.makedirs(model_dir, exist_ok=True)
+
+    pickle.dump(model, open(os.path.join(model_dir, "model.pkl"), "wb"))
+    pickle.dump(tfidf, open(os.path.join(model_dir, "tfidf.pkl"), "wb"))
+    pickle.dump(le_target, open(os.path.join(model_dir, "le_target.pkl"), "wb"))
+    pickle.dump(le_mood, open(os.path.join(model_dir, "le_mood.pkl"), "wb"))
+    pickle.dump(le_priority, open(os.path.join(model_dir, "le_priority.pkl"), "wb"))
+
+    print(f"✔ Model & encoders saved locally at: {model_dir}")
+
+
+# ================================================================
+# Load model components 
+# ================================================================
+def load_model_components(model_dir):
+
+    model = pickle.load(open(os.path.join(model_dir, "model.pkl"), "rb"))
+    tfidf = pickle.load(open(os.path.join(model_dir, "tfidf.pkl"), "rb"))
+    le_target = pickle.load(open(os.path.join(model_dir, "le_target.pkl"), "rb"))
+    le_mood = pickle.load(open(os.path.join(model_dir, "le_mood.pkl"), "rb"))
+    le_priority = pickle.load(open(os.path.join(model_dir, "le_priority.pkl"), "rb"))
+
+    print(f"✔ Loaded saved model from: {model_dir}")
+    return model, tfidf, le_target, le_mood, le_priority
+
+
+# ================================================================
+#  Training Pipeline 
+# ================================================================
+def train_model(dataset_path, model_dir):
+
+    df = safe_read_csv(dataset_path)
+    df.columns = df.columns.str.strip().str.lower()
+
+    # Allowed moods
+    allowed_moods = ["Stressed", "Happy", "Neutral", "Sad/Low", "Overwhelmed"]
+    df["mood"] = df["mood"].apply(lambda x: x if x in allowed_moods else "Neutral")
+
+    df["mood_task_logic"] = df["mood_task_logic"].fillna(
+        "Perform regular tasks; Moderate workload management"
+    )
+
+    # Label encoders
+    le_target = LabelEncoder()
+    df["target_label"] = le_target.fit_transform(df["mood_task_logic"])
+
+    le_mood = LabelEncoder()
+    df["mood_encoded"] = le_mood.fit_transform(df["mood"])
+
+    if "priority" in df.columns:
+        le_priority = LabelEncoder()
+        df["priority_encoded"] = le_priority.fit_transform(df["priority"].fillna("medium"))
+    else:
+        le_priority = LabelEncoder()
+        df["priority_encoded"] = 0
+
+    # Combine text fields
+    text_cols = [
+        c for c in ["title", "description", "task_1", "task_2", "task_3", "task_4"]
+        if c in df.columns
+    ]
+    df["text_features"] = df[text_cols].fillna("").astype(str).agg(" ".join, axis=1)
+
+    # Date gap calculation
+    def safe_parse_date(s):
+        try:
+            return pd.to_datetime(s)
+        except:
+            return pd.NaT
+
+    if "dashboard_date" in df.columns and "due_date" in df.columns:
+        df["due_date_parsed"] = df["due_date"].apply(safe_parse_date)
+        df["dashboard_date_parsed"] = df["dashboard_date"].apply(safe_parse_date)
+        df["date_gap_days"] = (
+            df["dashboard_date_parsed"] - df["due_date_parsed"]
+        ).dt.days.fillna(0).astype(int)
+    else:
+        df["date_gap_days"] = 0
+
+    X_tab = df[["mood_encoded", "priority_encoded", "date_gap_days"]]
+    y = df["target_label"]
+
+    tfidf = TfidfVectorizer(max_features=500)
+    X_text = tfidf.fit_transform(df["text_features"])
+    X_full = hstack([X_text, np.array(X_tab)])
+
+    # Train/test split
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_full, y, test_size=0.2, random_state=42, stratify=y
+    )
+
+    model = LogisticRegression(max_iter=2000, random_state=42)
+    model.fit(X_train, y_train)
+
+    # Save model locally
+    save_model_components(model_dir, model, tfidf, le_target, le_mood, le_priority)
+
+    return model, tfidf, le_target, le_mood, le_priority, allowed_moods
+
+
+# ================================================================
+# Prediction (offline)
+# ================================================================
+def predict_task(employee_mood, task_priority, model_dir):
+    # Load model
+    model, tfidf, le_target, le_mood, le_priority = load_model_components(model_dir)
+
+    mood_encoded = le_mood.transform([employee_mood])[0]
+    priority_encoded = le_priority.transform([task_priority])[0]
+
+    X_tab = np.array([[mood_encoded, priority_encoded, 0]])  # date gap = 0
+    X_text = tfidf.transform([""])  # no text data in your form
+
+    X_full = hstack([X_text, X_tab])
+
+    pred = model.predict(X_full)[0]
+    return le_target.inverse_transform([pred])[0]
+
+
+
+# ================================================================
+# Main Function
+# ================================================================
+def main(dataset_path, model_dir):
+
+    print("\n=== Task Recommender — Local Offline Mode ===")
+
+    if model_exists(model_dir):
+        print("\n✔ Found existing local model. Loading…")
+        model, tfidf, le_target, le_mood, le_priority = load_model_components(model_dir)
+        allowed_moods = ["Stressed", "Happy", "Neutral", "Sad/Low", "Overwhelmed"]
+    else:
+        print("\n⚠ No saved model found. Training offline…")
+        model, tfidf, le_target, le_mood, le_priority, allowed_moods = train_model(
+            dataset_path, model_dir
+        )
+
+    # predict_task(model, tfidf, le_target, le_mood, le_priority, allowed_moods)
+
+
+# ================================================================
+# Run locally (Change paths as needed)
+# ================================================================
+main(
+    dataset_path=r"dataset\task_recommendation_dataset.csv",
+    model_dir=r"trained_model"
+)
