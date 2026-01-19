@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Recommendation System</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Poppins", Arial, sans-serif;
+      color: #fff;
+      background: #000; /* fallback */
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .container {
+      display: flex;
+      height: 100vh;
+      width: 100%;
+    }
+
+    /* LEFT CONTENT AREA */
+    .left-panel {
+      flex: 1;
+      padding: 80px 120px;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    nav {
+      position: absolute;
+      top: 20px;
+      left: 40px;
+      right: 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 2.3rem;
+      font-weight: 700;
+      color: #ffb909;
+      text-transform: uppercase;
+      text-shadow: 0px 0px 6px rgba(0,0,0,0.4);
+    }
+
+    nav .buttons a {
+      text-decoration: none;
+      padding: 10px 20px;
+      margin-left: 10px;
+      font-size: 0.95rem;
+      border-radius: 6px;
+      border: 1px solid #ffb909;
+      color: #ffb909;
+      transition: 0.3s ease;
+    }
+
+    nav .buttons a:hover {
+      background: #ffb909;
+      color: #000;
+    }
+
+    .hero h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: #e2e2e2;
+      margin-bottom: 30px;
+      max-width: 500px;
+    }
+
+    .cta {
+      display: inline-block;
+      padding: 14px 28px;
+      background-color: #ffb909;
+      color: black;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: 0.3s ease;
+    }
+
+    .cta:hover {
+      background-color: #ffd56a;
+    }
+
+    /* RIGHT IMAGE PANEL (9:16 aspect ratio) */
+    .right-panel {
+      width: 38vw; /* fixed size relative to screen */
+      max-width: 450px; /* ensures clean ratio */
+      height: 100vh;
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .right-panel img {
+      height: 100%;
+      width: auto;  /* keeps 9:16 ratio */
+      object-fit: contain;
+    }
+
+    /* MOBILE STYLES */
+    @media (max-width: 900px) {
+      .right-panel {
+        display: none;
+      }
+
+      .left-panel {
+        padding: 40px 30px;
+      }
+    }
+
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- NAVBAR -->
+  <nav>
+    <div class="logo">                 </div>
+
+    <div class="buttons">
+      <a href="{{ url_for('login') }}">Sign In</a>
+      <a href="{{ url_for('register') }}">Register</a>
+    </div>
+  </nav>
+
+  <!-- LEFT CONTENT -->
+  <div class="left-panel">
+    <div class="hero">
+      <h1>AI-Powered Smart Task Recommendations</h1>
+      <p>Boost productivity with personalized task suggestions based on mood, focus, and priority—powered by machine learning.</p>
+
+      <a class="cta" href="{{ url_for('task') }}">Get Started</a>
+    </div>
+  </div>
+
+  <!-- RIGHT IMAGE PANEL -->
+  <div class="right-panel">
+    <a href = "http://127.0.0.1:5000/gift.jpg"></a>
+  </div>
+</div>
+
+</body>
+</html>
