@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login – Task Recommendation System</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: "Poppins", sans-serif;
+            background: url("{{ url_for('static', filename='Background_Image.jpg') }}") 
+                        no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        .overlay {
+            width: 100%;
+            height: 100vh;
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(2px);
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 35px 40px;
+            width: 360px;
+            border-radius: 12px;
+            box-shadow: 0 4px 25px rgba(0,0,0,0.4);
+            backdrop-filter: blur(8px);
+            color: white;
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 25px;
+            color: #ffb909;
+            font-size: 1.9rem;
+        }
+
+        label {
+            float: left;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 18px;
+            border-radius: 6px;
+            border: none;
+            outline: none;
+            background: rgba(255,255,255,0.9);
+            font-size: 1rem;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 6px;
+            background-color: #ffb909;
+            color: black;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            background-color: #ffd56a;
+        }
+
+        .bottom-text {
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .bottom-text a {
+            color: #ffb909;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="overlay">
+    <div class="container">
+        <h2>Login</h2>
+
+        <form method="POST" action="{{ url_for('login') }}">
+            <label>Email</label>
+            <input type="email" name="email" placeholder="Enter your email" required>
+
+            <label>Password</label>
+            <input type="password" name="password" placeholder="Enter your password" required>
+
+            <button class="btn" type="submit">Sign In</button>
+
+            <p class="bottom-text">Don't have an account? 
+                <a href="{{ url_for('register') }}">Register</a>
+            </p>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>
