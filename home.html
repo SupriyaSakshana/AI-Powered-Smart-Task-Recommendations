@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- <title>Task Recommendation System</title> -->
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Poppins", Arial, sans-serif;
+      color: #fff;
+      background: url("{{ url_for('static', filename='Background_Image.jpg') }}")
+                  no-repeat center center fixed;
+      background-size: cover;
+      height: 100vh;
+    }
+
+    /* Dark overlay */
+    .overlay {
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.58);
+      backdrop-filter: blur(1.5px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Navbar */
+    nav {
+      padding: 1.8rem 3rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    nav .logo {
+      font-size: 2.4rem;
+      font-weight: 700;
+      color: #ffb909;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-shadow: 0px 0px 10px rgba(0,0,0,0.4);
+    }
+
+    nav .buttons a {
+      text-decoration: none;
+      padding: 10px 20px;
+      margin-left: 10px;
+      font-size: 0.95rem;
+      border-radius: 6px;
+      font-weight: 500;
+      transition: 0.3s ease;
+    }
+
+    .signin {
+      border: 1px solid #ffb909;
+      color: #ffb909;
+      background: transparent;
+    }
+
+    .signin:hover {
+      background: #ffb909;
+      color: #000;
+    }
+
+    .register {
+      background: #ffb909;
+      color: #000;
+    }
+
+    .register:hover {
+      background: #ffd16c;
+    }
+
+    /* Hero Section */
+    .hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-left: 130px;
+      max-width: 650px;
+    }
+
+    .hero h1 {
+      font-size: 3rem;
+      line-height: 1.3;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: #dcdcdc;
+      margin-bottom: 2rem;
+      max-width: 85%;
+    }
+
+    .cta {
+      display: inline-block;
+      padding: 14px 28px;
+      background-color: #ffb909;
+      color: black;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: 0.3s ease;
+    }
+
+    .cta:hover {
+      background-color: #ffd56a;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+      .hero {
+        padding-left: 30px;
+        padding-right: 30px;
+      }
+
+      .hero h1 {
+        font-size: 2.2rem;
+      }
+
+      nav {
+        padding: 1.2rem 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="overlay">
+
+    <!-- Navbar -->
+    <nav>
+      <div class="logo">Task Recommendation System</div>
+      <div class="buttons">
+        <a href="{{ url_for('login') }}" class="signin">Sign In</a>
+        <a href="{{ url_for('register') }}" class="register">Register</a>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <h1>AI-Powered Smart Task Recommendations<br>for Better Productivity</h1>
+      <p>
+        Instantly get personalized task suggestions based on mood, priority, and work context.
+        Boost employee efficiency—powered by machine learning.
+      </p>
+
+      <a href="{{ url_for('gift') }}" class="cta">Get Started</a>
+    </section>
+
+  </div>
+
+</body>
+</html>
