@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Task Recommendation System</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" rel="stylesheet" />
+
+  <style>
+  /* Center the entire form container */
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: #f9f9f9; /* optional */
+    }
+
+    #taskRecommendationForm {
+        width: 100%;
+        max-width: 400px;
+    }
+  </style>
+
+</head>
+
+<body>
+  <form class="ui form" id="taskRecommendationForm" style="max-width:400px;">
+    <h3 class="ui dividing header">Task Recommendation Form</h3>
+
+    <!-- Mood Selection -->
+    <div class="field">
+      <label>Employee Mood</label>
+      <select class="ui dropdown" id="dropdown1" name="employee_mood">
+        <option value="">Select Employee Mood</option>
+        <option value="Stressed">Stressed</option>
+        <option value="Happy">Happy</option>
+        <option value="Neutral">Neutral</option>
+        <option value="Sad/Low">Sad/Low</option>
+        <option value="Overwhelmed">Overwhelmed</option>
+      </select>
+    </div>
+    <!-- Task Priority Selection -->
+    <div class="field">
+      <label>Task Priority</label>
+      <select class="ui dropdown" id="dropdown2" name="task_priority">
+        <option value="">Select Task Priority</option>
+        <option value="high">high</option>
+        <option value="low">low</option>
+        <option value="medium">medium</option>
+        <option value="urgent">urgent</option>
+      </select>
+    </div>
+
+    <button class="ui primary button" type="submit"
+      style="width:100%; background-color: #ffb909; color: white; padding: 10px 20px; border-radius: 5px;">Get
+      Recommendation</button>
+  </form>
+
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <!-- Semantic UI JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.5.0/dist/semantic.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.5.0/dist/semantic.min.css" />
+
+  <script>
+    $(function () {
+      $('.ui.dropdown').dropdown();
+    });
+  </script>
+
+  <!-- Modal -->
+  <div class="ui large modal" id="responseModal">
+    <i class="close icon"></i> <!-- top-right close button -->
+    <div class="header">Task Recommended</div>
+    <div class="scrolling content">
+      <div id="modalError" class="ui negative message" style="display:none;"></div>
+
+      <!-- Cards wrapper (centered) -->
+      <div id="cardsWrap" class="ui centered stackable cards"></div>
+    </div>
+    <div class="actions">
+      <button class="approve button" style="background-color: #ffb909;">Okay</button>
+    </div>
+  </div>
+
+  <!-- Load scripts in correct order -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+
+  <script>
+    $(function () {
+      $('.ui.dropdown').dropdown();
+
+      $('#taskRecommendationForm').on('submit', function (e) {
+        e.preventDefault();
+        // Get dropdown values
+        let employee_mood = $('#dropdown1').val();
+        let task_priority = $('#dropdown2').val();
+        // ✅ Validate before AJAX
+        if (!employee_mood || !task_priority) {
+          alert("Please select all options before submitting.");
+          return; // stop here
+        }
+
+
+        $('#modalError').hide().empty();
+        $('#cardsWrap').html(`
+        <div class="ui active inverted dimmer">
+          <div class="ui text loader">Loading</div>
+        </div>
+        <div style="height:60px;"></div>
+      `);
+
+        $('#responseModal')
+          .modal({ detachable: false, centered: true, closable: true })
+          .modal('show');
+        /*Comment our console logging during production mode*/
+        console.log("dropdown1:" + $('#dropdown1').val())
+        console.log("dropdown2:" + $('#dropdown2').val())
+
+        $.ajax({
+          type: 'POST',
+          url: '/get_recommendation',
+          data: {
+            employee_mood: $('#dropdown1').val(),
+            task_priority: $('#dropdown2').val(),
+          },
+          dataType: "json",
+          success: function (data) {
+            $('#cardsWrap').empty();
+
+            if (data.error) {
+              $('#cardsWrap').html(`<p style="color:red; text-align:center;">${data.error}</p>`);
+              return;
+            }
+
+            let rec = data.recommended_task;
+
+            // Display only plain text (no card, no image)
+            $('#cardsWrap').html(`
+            <div style="
+              font-size: 1.3rem;
+              font-weight: 600;
+              padding: 20px;
+              text-align: center;
+            ">
+            ${rec}
+            </div>
+            `);
+
+            $('#responseModal')
+              .modal({
+                autofocus: false,
+                observeChanges: true,
+                detachable: false,
+                closable: true
+              })
+              .modal('show');
+          }
+          ,
+          error: function () {
+            $('#cardsWrap').empty();
+            $('#modalError').text("Error: request failed").show();
+          }
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>
